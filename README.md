@@ -122,10 +122,10 @@ pip install torch torchvision torchaudio
 
 ### Dataset Structure
 
-# You need to email abhinav@iitrpr.ac.in or  abhinav@iitrpr.ac.in to apply for and obtain the EngageNet dataset.
-<!-- https://github.com/engagenet/engagenet_baselines -->
-# You need to download DAiSEE dataset from this web
-<!-- https://people.iith.ac.in/vineethnb/resources/daisee/index.html -->
+You need to email abhinav@iitrpr.ac.in or  abhinav@iitrpr.ac.in to apply for and obtain the EngageNet dataset.
+https://github.com/engagenet/engagenet_baselines
+You need to download DAiSEE dataset from this web
+https://people.iith.ac.in/vineethnb/resources/daisee/index.html
 
 # We need to filter out video data with a duration of fewer than 280 frames, videos without students, and extracted black images (as noisy samples) !
 ```
@@ -397,3 +397,4 @@ For questions or suggestions, please contact:
 ---
 
 **Happy Coding!** 🎓📚
+
