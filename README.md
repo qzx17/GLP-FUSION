@@ -174,7 +174,7 @@ python main_features.py \
   --workers 8 \
   --epochs 50 \
   --batch-size 6 \
-  --lr 0.01 \
+  --lr 0.005 \
   --lr-image-encoder 0.00001 \
   --lr-prompt-learner 0.001 \
   --weight-decay 0.0001 \
@@ -215,25 +215,11 @@ python main_features.py \
   --temporal-layers 1
 ```
 
-### Training Parameters
-
-| Parameter | Description | Default |
-|------|------|--------|
-| `--dataset` | Dataset name (DAiSEE/EngageNet) | - |
-| `--epochs` | Number of training epochs | 50 |
-| `--batch-size` | Batch size | 48 |
-| `--lr` | Learning rate | 0.01 |
-| `--lr-image-encoder` | Image encoder learning rate | 0.00001 |
-| `--workers` | Number of data loading workers | 8 |
-| `--milestones` | Learning rate decay milestones | 40 |
-| `--seed` | Random seed | 42 |
-| `--exper-name` | Experiment name | - |
-
 ### Training Output
 
 The training process will automatically generate the following files:
 ```
-/log_time/
+/log/
 ├── <dataset>-<timestamp>-set1-log.txt      # Training log
 ├── <dataset>-<timestamp>-set1-log.png      # Training curve
 └── <dataset>-<timestamp>-set1-cn.png       # Confusion matrix
@@ -281,31 +267,6 @@ python inference.py
 - Mean Absolute Error
 - Per-class metrics
 
-## Project Structure
-
-```
-GLP-fusion/
-├── main_features.py              # Main training script
-├── inference.py                  # Inference script
-├── config.yaml                   # Configuration file
-├── requirements.txt              # Dependencies list
-├── README.md                     # Project documentation
-├── dataloader/                   # Data loading module
-│   ├── video_duibi.py           # Video data loader
-│   ├── video_transform.py       # Data augmentation and transformation
-│   └── data_augmentation.py     # S&R data augmentation
-├── jzt_fusion/                   # Core model module
-│   ├── feature_fusion.py        # Feature fusion main module
-│   ├── cnn_tvit.py              # TemporalViT implementation
-│   ├── temporal_spatial_stream.py  # Temporal-spatial stream model
-│   └── SLDenseLayer.py          # Physiological signal processing
-├── log_time/                     # Training logs
-├── pth/                          # Model weights
-└── result/                       # Inference results
-```
-
-## Performance Metrics
-
 ### Evaluation Metrics
 
 - **UAR** (Unweighted Average Recall): Unweighted average recall
@@ -315,15 +276,6 @@ GLP-fusion/
 - **Recall**: Recall
 - **F1-Score**: F1 score
 - **Confusion Matrix**: Confusion matrix
-
-### Model Performance Monitoring
-
-During training, real-time output:
-```
-Epoch: [10][0/100]    Loss 1.2345 (1.2345)    Accuracy 75.123 (75.123)
-Current Accuracy: 78.456
-The best accuracy: 80.123
-```
 
 ## Parameter Description
 
@@ -358,19 +310,20 @@ The best accuracy: 80.123
 ## FAQ
 
 **Q: How to modify the number of classes?**
-A: Modify the parameter in `Decision_Fusion(n_classes=4)`
+
+Modify the parameter in `Decision_Fusion(n_classes=4)`
 
 **Q: How to use a custom dataset?**
-A: 
+
 1. Prepare annotation files in the required format
 2. Add dataset configuration in `main_features.py`
 3. Update normalization parameters in the data loader
 
 **Q: Slow inference speed?**
-A: 
-- Use GPU for inference
-- Reduce num_segments (number of video frames)
-- Use model quantization or pruning
+ 
+1. Use GPU for inference
+2. Reduce num_segments (number of video frames)
+3. Use model quantization or pruning
 
 ## Citation
 
@@ -397,4 +350,5 @@ For questions or suggestions, please contact:
 ---
 
 **Happy Coding!** 🎓📚
+
 
