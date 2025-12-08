@@ -1,0 +1,100 @@
+# GLP-Fusion Training Configuration
+
+# Dataset Configuration
+dataset:
+  name: 'DAiSEE'  # Options: 'DAiSEE', 'EmotiW'
+  num_classes: 4
+  num_segments: 16
+  duration: 1
+  image_size: 224
+  
+  # Data paths
+  DAiSEE:
+    train_annotation: "/DAiSEE_Train_set.txt"
+    validation_annotation: "/DAiSEE_Validation_set.txt"
+    test_annotation: "/DAiSEE_Test_set.txt"
+    sl_file: "SL_DAiSEE.csv"
+    normalization:
+      mean: [0.334, 0.258, 0.242]
+      std: [0.250, 0.194, 0.192]
+  
+  EmotiW:
+    train_annotation: "/EmotiW_Train_set.txt"
+    validation_annotation: "/EmotiW_Validation_set.txt"
+    test_annotation: "/EmotiW_Test_set.txt"
+    sl_file: "SL_EmotiW.csv"
+    normalization:
+      mean: [0.338, 0.248, 0.235]
+      std: [0.254, 0.202, 0.195]
+
+# Training Configuration
+training:
+  epochs: 50
+  batch_size: 48
+  workers: 8
+  print_freq: 10
+  seed: 42
+  
+  # Optimizer
+  optimizer:
+    type: 'SGD'
+    lr: 0.001(EmotiW 2023) or 0.005(DAiSEE)
+    lr_image_encoder: 0.00001
+    lr_prompt_learner: 0.001
+    momentum: 0.9
+    weight_decay: 0.0001
+  
+  # Scheduler
+  scheduler:
+    type: 'MultiStepLR'
+    milestones: [40]
+    gamma: 0.1
+
+# Model Configuration
+model:
+  # TemporalViT
+  temporal_vit:
+    image_size: [112, 112]
+    patch_size: 16
+    dim: 768
+    depth: 6
+    heads: 12
+    mlp_dim: 128
+    dropout: 0.3
+    emb_dropout: 0.2
+    channels: 64
+  
+  # Temporal-Spatial Stream
+  ts_stream:
+    depth: 6
+    emb_size: 64
+  
+  # Pyramid Fusion
+  pyramid_fusion:
+    input_dim: 128
+    depths: [2, 2, 2]
+    heads: [2, 2, 2]
+    dims: [64, 32, 16]
+
+# Text Configuration
+text:
+  type: 'class_names'  # Options: 'class_names', 'class_names_with_context', 'class_descriptor'
+  contexts_number: 4
+  class_token_position: 'end'
+  class_specific_contexts: False
+  load_and_tune_prompt_learner: False
+
+# Temporal Configuration
+temporal:
+  layers: 1
+
+# Output Paths
+output:
+  log_dir: '/log_time/'
+  checkpoint_dir: '/pth/'
+  result_dir: '/result/'
+
+# Experiment
+experiment:
+  name: 'GLP_Fusion_Experiment'
+
