@@ -175,17 +175,10 @@ python main_features.py \
   --epochs 50 \
   --batch-size 6 \
   --lr 0.005 \
-  --lr-image-encoder 0.00001 \
-  --lr-prompt-learner 0.001 \
   --weight-decay 0.0001 \
   --momentum 0.9 \
   --print-freq 10 \
   --milestones 40 \
-  --contexts-number 4 \
-  --class-token-position "end" \
-  --class-specific-contexts "False" \
-  --load_and_tune_prompt_learner "False" \
-  --text-type "class_names" \
   --exper-name "DAiSEE_Experiment" \
   --seed 42 \
   --temporal-layers 1
@@ -199,17 +192,10 @@ python main_features.py \
   --epochs 50 \
   --batch-size 6 \
   --lr 0.001 \
-  --lr-image-encoder 0.00001 \
-  --lr-prompt-learner 0.001 \
   --weight-decay 0.0001 \
   --momentum 0.9 \
   --print-freq 10 \
   --milestones 40 \
-  --contexts-number 4 \
-  --class-token-position "end" \
-  --class-specific-contexts "False" \
-  --load_and_tune_prompt_learner "False" \
-  --text-type "class_names" \
   --exper-name "EngageNet_Experiment" \
   --seed 42 \
   --temporal-layers 1
@@ -349,6 +335,7 @@ For questions or suggestions, please contact:
 ---
 
 **Happy Coding!** 🎓📚
+
 
 
 
