@@ -126,7 +126,8 @@ https://github.com/engagenet/engagenet_baselines
 You need to download DAiSEE dataset from this web
 https://people.iith.ac.in/vineethnb/resources/daisee/index.html
 
-# We need to filter out video data with a duration of fewer than 280 frames, videos without students, and extracted black images (as noisy samples) !
+We need to filter out video data with a duration of fewer than 280 frames, videos without students, and extracted black images (as noisy samples) !
+
 ```
 GLP-fusion/
 ├── data/
@@ -334,6 +335,7 @@ For questions or suggestions, please contact:
 ---
 
 **Happy Coding!** 🎓📚
+
 
 
 
