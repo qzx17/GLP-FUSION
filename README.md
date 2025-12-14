@@ -191,7 +191,7 @@ python main_features.py \
   --workers 8 \
   --epochs 50 \
   --batch-size 6 \
-  --lr 0.001 \
+  --lr 0.01 \
   --weight-decay 0.0001 \
   --momentum 0.9 \
   --print-freq 10 \
@@ -335,6 +335,7 @@ For questions or suggestions, please contact:
 ---
 
 **Happy Coding!** 🎓📚
+
 
 
 
