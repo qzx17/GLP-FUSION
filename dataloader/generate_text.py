@@ -189,7 +189,7 @@ def inference(train_loader, log_txt_path):
     top1 = AverageMeter('Qwen_Accuracy', ':6.4f')
     top_score = AverageMeter('Qwen_Accuracy_score', ':6.4f')
     progress = ProgressMeter(len(train_loader),
-                             [losses, top1, top_score], # 只顯示 Qwen 的指標
+                             [losses, top1, top_score],
                              log_txt_path=log_txt_path)
 
 
@@ -202,7 +202,7 @@ def inference(train_loader, log_txt_path):
         
         writer.writeheader()
         
-        print(f"結果將被實時保存到: {csv_output_path}")
+        print(f"结果被保存到: {csv_output_path}")
 
         for batch_idx, (video_paths, labels, extract_features, signals_data_values_sl) in enumerate(train_loader):
             for video_path, ground_truth_label_tensor, current_features, current_signal in zip(video_paths, labels, extract_features, signals_data_values_sl):
@@ -225,7 +225,7 @@ def inference(train_loader, log_txt_path):
                         error_msg = json.dumps([{"error": "FRAME_EXTRACTION_FAILED"}])
                         result_entry["per_frame_analysis"] = error_msg
                         writer.writerow(result_entry)
-                        csvfile.flush() # 強制寫入磁盤
+                        csvfile.flush()
                         continue
 
                     per_frame_results = []
@@ -239,14 +239,14 @@ def inference(train_loader, log_txt_path):
                     result_entry["per_frame_analysis"] = json.dumps(per_frame_results, ensure_ascii=False, indent=2)
 
                 except Exception as e:
-                    print(f"\n處理 {video_path} 時發生嚴重錯誤: {e}")
+                    print(f"\n处理 {video_path} 时发生错误: {e}")
                     traceback.print_exc()
                     result_entry["per_frame_analysis"] = json.dumps([{"error": "FATAL_ERROR", "details": str(e)}])
 
                 writer.writerow(result_entry)
                 csvfile.flush()
 
-    print(f"\n所有視頻處理完畢。最終結果已保存在 {csv_output_path}")
+    print(f"\n所有视频处理完毕。最终结果已保存在 {csv_output_path}")
     return
 
 
@@ -303,4 +303,5 @@ if __name__ == "__main__":
         main()
     except Exception as e:
         print(f"Program terminated with error: {str(e)}")
+
         raise
