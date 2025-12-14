@@ -30,29 +30,16 @@ from model.GLP_fusion.feature_fusion import Decision_Fusion
 from model.Text import *
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset', type=str)
-
 parser.add_argument('--workers', type=int, default=8)
 parser.add_argument('--epochs', type=int, default=50)
 parser.add_argument('--batch-size', type=int, default=48)
-
 parser.add_argument('--lr', type=float, default=1e-2)
-parser.add_argument('--lr-image-encoder', type=float, default=1e-5)
-parser.add_argument('--lr-prompt-learner', type=float, default=1e-3)
-
 parser.add_argument('--weight-decay', type=float, default=1e-4)
 parser.add_argument('--momentum', type=float, default=0.9)
 parser.add_argument('--print-freq', type=int, default=10)
 parser.add_argument('--milestones', nargs='+', type=int)
-
-parser.add_argument('--contexts-number', type=int, default=4)
-parser.add_argument('--class-token-position', type=str, default="end")
-parser.add_argument('--class-specific-contexts', type=str, default='False')
-parser.add_argument('--load_and_tune_prompt_learner', type=str, default='False', help='Whether to load and tune the prompt learner')
-parser.add_argument('--text-type', type=str)
 parser.add_argument('--exper-name', type=str)
 parser.add_argument('--seed', type=int)
-parser.add_argument('--temporal-layers', type=int, default=1)
-
 args = parser.parse_args()
 
 random.seed(args.seed)  
@@ -73,13 +60,9 @@ time_str = time_str + args.exper_name
 if args.dataset == "DAiSEE":
     number_class = 4
     class_names = class_names_4
-    class_names_with_context = class_names_with_context_4
-    class_descriptor = class_descriptor_4
 elif args.dataset == "EngageNet":
     number_class = 4
     class_names = class_names_4
-    class_names_with_context = class_names_with_context_4
-    class_descriptor = class_descriptor_4
 def main(set):
     
     data_set = set+1
@@ -109,13 +92,6 @@ def main(set):
     best_acc = 0
     recorder = RecorderMeter(args.epochs)
     print('The training name: ' + time_str)
-    
-    if args.text_type=="class_names":
-        input_text = class_names
-    elif args.text_type=="class_names_with_context":
-        input_text = class_names_with_context
-    elif args.text_type=="class_descriptor":
-        input_text = class_descriptor
 
     
     model = Decision_Fusion(4)
@@ -254,12 +230,9 @@ def train(train_loader, model, criterion, optimizer, epoch, args, log_txt_path):
     # switch to train mode
     
     model.train()
-    # 损失权重
-    ce_weight = 1.0
-    contrast_weight = 0.2  # 对比损失权重
     for i, (images, target, extract_features, extract_features_sl) in enumerate(train_loader):
 
-        images = images.cuda() #[B,T,3,112,112]
+        images = images.cuda() #[B,T,3, 224, 224]
         target = target.cuda()
         extract_features = extract_features.cuda()
         extract_features_sl=extract_features_sl.cuda()
@@ -294,8 +267,6 @@ def validate(val_loader, model, criterion, args, log_txt_path):
 
     # switch to evaluate mode
     model.eval()
-    ce_weight = 1.0
-    contrast_weight = 0.2  # 对比损失权重
     with torch.no_grad():
         for i, (images, target, extract_features, extract_features_sl) in enumerate(val_loader):
             
@@ -486,10 +457,7 @@ class RecorderMeter(object):
 
 
 def plot_confusion_matrix(cm, classes, normalize=False, title='confusion matrix', cmap=plt.cm.Blues):
-    """
-    This function prints and plots the confusion matrix.
-    Normalization can be applied by setting `normalize=True`.
-    """
+
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
     plt.title(title, fontsize=16)
     plt.colorbar()
@@ -594,5 +562,3 @@ if __name__ == '__main__':
     print("UAR: %0.2f" % (UAR/all_fold))
     print("WAR: %0.2f" % (WAR/all_fold))
     print('*********************************')
-
-    
