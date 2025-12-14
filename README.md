@@ -77,9 +77,8 @@ Classification Output
 
 ### System Requirements
 - Python 3.8
-        - CUDA 11.8 (GPU recommended)
-- 16GB+ RAM
-- 8GB+ GPU Memory (recommended)
+- CUDA 11.8 (GPU recommended)
+- 16GB+ GPU Memory (recommended)
 
 ### Installation Steps
 
@@ -335,6 +334,7 @@ For questions or suggestions, please contact:
 ---
 
 **Happy Coding!** 🎓📚
+
 
 
 
