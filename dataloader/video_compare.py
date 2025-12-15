@@ -138,9 +138,6 @@ class VideoDataset(data.Dataset):
                  # 打开图像文件
                 img_path = os.path.join(video_frames_path[p])
                 img = Image.open(img_path).convert('RGB')
-                # # 调整图像尺寸到224x224
-                # img = img.resize((224, 224), Image.BICUBIC)
-                # 将调整尺寸后的图像添加到列表
                 seg_imgs = [img]
                 images.extend(seg_imgs)
                 if p < record.num_frames - 1:
