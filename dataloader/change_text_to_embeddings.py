@@ -118,10 +118,6 @@ def generate_embedding_dict():
     with open(SAVE_DICT_PATH, 'wb') as f:
         pickle.dump(embedding_dict, f)
         
-    print(f"\n✅ 时序文本嵌入字典已成功保存到：{SAVE_DICT_PATH}")
-    print(f"📊 字典包含 {len(embedding_dict)} 个视频的嵌入")
-
-    # 验证一下第一个样本的形状是否正确
     if embedding_dict:
         first_key = list(embedding_dict.keys())[-1]
         print(f"示例: '{first_key}' 的嵌入形状为: {embedding_dict[first_key].shape}")
@@ -133,4 +129,5 @@ if __name__ == "__main__":
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
     # 生成并保存字典
+
     generate_embedding_dict()
