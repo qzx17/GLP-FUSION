@@ -19,15 +19,6 @@ from tqdm import tqdm
 
 def train_MGAFR(args, model, rec_loss_fn, dataloader, vdim, tdim, mask_rate=None, optimizer=None, train=False):
     
-    # --- 移植自目标代码：初始化所有需要的列表 ---
-    savelabels, savehiddens = [], []
-    losses, losses1, losses2, losses3 = [], [], [], []
-    labels, masks = [], []
-    
-    save_raw_video, save_raw_text = [], []
-    save_recon_video, save_recon_text = [], []
-    # -------------------------------------------
-
     cuda = torch.cuda.is_available()
 
     assert not train or optimizer is not None
@@ -39,8 +30,7 @@ def train_MGAFR(args, model, rec_loss_fn, dataloader, vdim, tdim, mask_rate=None
     for data in tqdm(dataloader, desc="Training" if train else "Validation"):
         
         if train: optimizer.zero_grad()
-        
-        # --- 你的数据加载和预处理部分 (保持不变) ---
+
         visual_features, batch_labels, _, _, text_features = data
         
         visual_features = visual_features.cuda()
@@ -72,27 +62,23 @@ def train_MGAFR(args, model, rec_loss_fn, dataloader, vdim, tdim, mask_rate=None
         input_features_mask = input_features_mask_tensor.unsqueeze(0)
         # -------------------------------------------
 
-        # --- 适配目标代码的label形状 [B] -> [B, S] ---
         label = batch_labels.unsqueeze(1).repeat(1, seqlen)
 
         with torch.set_grad_enabled(train):
             recon_input_features, hidden, hidden_other = model(masked_input_features, umask, input_features_mask)
-            
-            # --- 移植自目标代码：一次性、更健壮的损失计算 ---
+
             contrastive_loss = get_contrastive_loss(hidden_other, umask)
-            # 注意：这里的 rec_loss_fn 应该就是你定义的 rec_loss
+            # 注意：这里的 rec_loss_fn 就是定义的 rec_loss
             reconstruct_loss = rec_loss_fn(recon_input_features, input_features, input_features_mask, umask, tdim, vdim) * args.recon_weight
             featureInfo_loss = hidden_other[2] * args.inf_weight
             
             loss = contrastive_loss + reconstruct_loss + featureInfo_loss
             # ------------------------------------------------
 
-        # --- 反向传播 (保持不变) ---
         if train:
             loss.backward()
             optimizer.step()
-        
-        # --- 移植自目标代码：详细的结果保存逻辑 ---
+
         tempseqlen = np.sum(umask.cpu().data.numpy(), 1)
         temphidden = hidden.transpose(0,1).cpu().data.numpy()
         templabel = label.cpu().data.numpy()
@@ -120,16 +106,13 @@ def train_MGAFR(args, model, rec_loss_fn, dataloader, vdim, tdim, mask_rate=None
             save_recon_text.append(item_recon_text)
             save_recon_video.append(item_recon_video)
 
-        # --- 移植自目标代码：标准的损失聚合方式 ---
         labels.append(label.reshape(-1).data.cpu().numpy())
         masks.append(umask.reshape(-1).cpu().numpy())
         losses.append(loss.item()*masks[-1].sum())
         losses1.append(contrastive_loss.item()*masks[-1].sum())
         losses2.append(reconstruct_loss.item()*masks[-1].sum())
         losses3.append(featureInfo_loss.item()*masks[-1].sum())
-        # -----------------------------------------
 
-    # --- 移植自目标代码：标准的平均损失计算和最终结果打包 ---
     masks  = np.concatenate(masks)
     avg_loss = round(np.sum(losses)/np.sum(masks), 4)
     avg_loss1 = round(np.sum(losses1)/np.sum(masks), 4)
@@ -144,7 +127,6 @@ def train_MGAFR(args, model, rec_loss_fn, dataloader, vdim, tdim, mask_rate=None
         save_dict["save_recon_video"] = np.concatenate(save_recon_video,axis=0)
         save_dict["savehiddens"] = np.concatenate(savehiddens,axis=0)
         save_dict["savelabels"] = np.concatenate(savelabels,axis=0)
-    # ----------------------------------------------------
 
     return [avg_loss, avg_loss1, avg_loss2, avg_loss3], save_dict
 
@@ -152,7 +134,6 @@ def train_MGAFR(args, model, rec_loss_fn, dataloader, vdim, tdim, mask_rate=None
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    # MODIFIED: 简化了参数，使其与您的项目更相关
     parser.add_argument('--dataset', type=str, default='DAiSEE', help='dataset type (DAiSEE or EmotiW)')
     # parser.add_argument('--dataset', type=str, default='EmotiW', help='dataset type (DAiSEE or EmotiW)')
     parser.add_argument('--lr', type=float, default=1e-3, metavar='LR', help='learning rate')
@@ -168,15 +149,16 @@ if __name__ == '__main__':
     # --- MODIFIED: 使用您的数据加载器 ---
     print (f'====== Reading Data for {args.dataset} =======')
     # 定义您的文件路径
-    TRAIN_LIST_FILE = '/root/autodl-tmp/code/Student_Engagement/DAiSEE_all.txt'
-    # TRAIN_LIST_FILE = '/root/autodl-tmp/code/Student_Engagement/EmotiW_all.txt'
-    # TRAIN_LIST_FILE = '/root/autodl-tmp/code/Student_Engagement/DAiSEE_Test_image.txt'
-    TRAIN_TEXT_FILE = '/root/autodl-tmp/code/Student_Engagement/embedding_dict_timeseries_daisee_16.pkl'
-    # TRAIN_TEXT_FILE = '/root/autodl-tmp/code/Student_Engagement/embedding_dict_timeseries_emotiw_16.pkl'
-    SL_FILE = '/root/autodl-tmp/code/Student_Engagement/All_daisee.csv'
-    # SL_FILE = '/root/autodl-tmp/code/Student_Engagement/EmotiW_Train.csv'
-    TRAIN_VISUAL_FEATURES = '/root/autodl-tmp/code/Student_Engagement/preprocessed_features/train_visual_features.pkl'
-    # TRAIN_VISUAL_FEATURES = '/root/autodl-tmp/code/Student_Engagement/preprocessed_features/train_visual_features_emotiw.pkl'
+    TRAIN_LIST_FILE = 'DAiSEE_all.txt'
+    # TRAIN_LIST_FILE = 'EmotiW_all.txt'
+    # TRAIN_LIST_FILE = 'DAiSEE_Test_image.txt'
+    TRAIN_TEXT_FILE = 'embedding_dict_timeseries_daisee_16.pkl'
+    # TRAIN_TEXT_FILE = 'embedding_dict_timeseries_emotiw_16.pkl'
+    SL_FILE = 'SL_DAiSEE.csv'
+    # SL_FILE = 'SL_EmotiW.csv'
+    # 这里是你的视觉特征通过resnet50进行提取到的向量权重文件
+    TRAIN_VISUAL_FEATURES = 'preprocessed_features/train_visual_features.pkl'
+    # TRAIN_VISUAL_FEATURES = 'preprocessed_features/train_visual_features_emotiw.pkl'
 
     train_dataset = train_data_loader(
         list_file=TRAIN_LIST_FILE, sl_file=SL_FILE, text_embedding_dict=TRAIN_TEXT_FILE,
@@ -186,7 +168,7 @@ if __name__ == '__main__':
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=4)
     
     # 定义特征维度
-    adim = 0      # 没有音频
+    adim = 0      # 没有音频，学生单向听讲课堂不涉及
     tdim = 768    # 文本特征维度
     vdim = 2048   # 视觉特征维度
     # -----------------------------------------------
@@ -222,5 +204,6 @@ if __name__ == '__main__':
         f.write(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))+'\n')
         f.write(str(test_results)+'\n')
         f.write('\n')
+
 
     print(f'====== Finish =======')
