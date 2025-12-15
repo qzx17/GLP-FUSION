@@ -4,12 +4,9 @@ from torch import nn
 from einops import rearrange, repeat
 from einops.layers.torch import Rearrange
 import torch.nn.functional as F
-# helpers
 
 def pair(t):
     return t if isinstance(t, tuple) else (t, t)
-
-# classes
 
 class ResidualBlock(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride, padding):
@@ -122,10 +119,8 @@ class Transformer(nn.Module):
 
     def forward(self, x):
         for norm1, attn, norm2, ff in self.layers:
-            # 自注意力层的残差连接
-            x = x + attn(norm1(x))  # Pre-norm + 残差连接
-            # 前馈网络层的残差连接
-            x = x + ff(norm2(x))    # Pre-norm + 残差连接
+            x = x + attn(norm1(x))
+            x = x + ff(norm2(x))
         return self.final_norm(x)
     
 class TemporalViT(nn.Module):
