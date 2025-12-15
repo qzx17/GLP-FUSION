@@ -89,16 +89,13 @@ class MGAFR(nn.Module):
         n_samples = data.shape[0]
         
         # 1. 一次性计算所有样本对之间的距离矩阵 (N x N)
-        # 这个操作是高度优化的，会利用GPU并行计算
         dist_matrix = torch.cdist(data, data, p=2)
 
         # 2. 找到每个样本的 k 个最近邻
         # 我们加上一个很大的值到对角线，避免一个点成为自己的最近邻
-        # topk 在这里寻找最小值，所以我们要屏蔽自己
         dist_matrix.fill_diagonal_(float('inf'))
         
         # 使用 topk 找到 k 个最小的距离及其索引
-        # 注意：如果样本数小于k，需要调整k的值
         k_val = min(self.k, n_samples -1)
         if k_val <= 0: # 处理只有一个样本的极端情况
             return torch.eye(n_samples, device=data.device), input_data
@@ -210,19 +207,19 @@ class MGAFR(nn.Module):
                         neighbor_indices = torch.nonzero(adj_list[other_modality_idx][i]).flatten()
                         
                         for neighbor_idx in neighbor_indices:
-                            # 如果邻居有当前缺失的模态
+                            # 如果其他特征有当前缺失的模态
                             if features_mask_del_umask[neighbor_idx][j] != 0:
                                 new_features_list[j][i] = new_features_list[j][i] + features_list[j][neighbor_idx]
                                 num_link += 1
                         
                         if num_link != 0:
                             new_features_list[j][i] = new_features_list[j][i] / num_link
-                            # (可选) 更新邻接矩阵
+
         return new_features_list[0], new_features_list[1], new_adj_list[0], new_adj_list[1]
     
     def forward(self, inputfeats, umask, input_features_mask):
         inputfeats_tensor = inputfeats[0]
-        t = inputfeats_tensor[:,:,0:self.tdim].permute(1,0,2) # <--- 索引从0开始
+        t = inputfeats_tensor[:,:,0:self.tdim].permute(1,0,2)
         v = inputfeats_tensor[:,:,self.tdim:].permute(1,0,2)
         raw_shape = t.shape
         #a:torch.Size([batch, seqlen, 512])，mask:torch.Size([batch, seqlen])
@@ -284,4 +281,5 @@ class IndexFlatL2:
         if distances.shape[0] < k:
             k = distances.shape[0]
         nearest_distances, nearest_indices = torch.topk(distances, k, largest=False)
+
         return nearest_indices, nearest_distances
