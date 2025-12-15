@@ -271,21 +271,6 @@ python inference.py
 - `GroupRandomHorizontalFlip`: 50% probability horizontal flip
 - `GroupNormalize`: Dataset-specific normalization
 
-### Model Hyperparameters
-
-**TemporalViT:**
-- `image_size`: (224, 224)
-- `patch_size`: 16
-- `dim`: 768
-- `depth`: 6 (Number of Transformer layers)
-- `heads`: 12 (Number of attention heads)
-- `dropout`: 0.3
-
-**PyramidFusion:**
-- `depths`: [2, 2, 2] (Transformer depth at each scale)
-- `heads`: [2, 2, 2] (Attention heads at each scale)
-- `dims`: [64, 32, 16] (Feature dimensions at each scale)
-
 ## Important Notes
 
 1. **Data Paths**: Modify data paths in `main_features.py` and `inference.py` according to your setup
@@ -335,6 +320,7 @@ For questions or suggestions, please contact:
 ---
 
 **Happy Coding!** 🎓📚
+
 
 
 
