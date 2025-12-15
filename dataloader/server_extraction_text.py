@@ -156,7 +156,7 @@ def generate_multimodal_completion():
                 "finish_reason": "stop"
             }
         ],
-        "model": "qwen2.5-vl-instruct",
+        "model": "qwen3-vl-instruct",
         "object": "chat.completion",
         "usage": {
             "prompt_tokens": prompt_tokens,
@@ -179,4 +179,5 @@ if __name__ == "__main__":
         print("\n服务器已启动，等待请求...")
         app.run(host=HOST, port=PORT, debug=False, threaded=True)
     else:
+
         print("\n服务器启动失败，模型未加载！")
