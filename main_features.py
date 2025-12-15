@@ -135,15 +135,12 @@ def main(set):
                                  duration=1,
                                  image_size=224)
     
-    # train_data = ConcatDataset([train_data, test_data])
     def get_class_weights(dataset):
-        # get all labels
+
         labels = [dataset[i][1] for i in range(len(dataset))]
-        
-        # compute each class-num
+
         class_counts = torch.bincount(torch.tensor(labels))
         
-        # compute weight
         weights = 1.0 / class_counts.float()
 
         sample_weights = [weights[label] for label in labels]
