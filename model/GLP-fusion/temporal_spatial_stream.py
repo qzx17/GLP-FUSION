@@ -1,6 +1,5 @@
 import math
 import torch.nn.functional as F
-
 import torch
 from torch import nn
 from einops import rearrange
@@ -106,14 +105,7 @@ class TS_TransformerEncoderBlock(nn.Sequential):
 
 
 class TS_TransformerEncoder(nn.Sequential):
-    def __init__(self, depth, emb_size):
-        """
-        Initialize the TS_TransformerEncoder.
-
-        Parameters:
-            depth (int): Number of sequential Transformer Encoder Blocks.
-            emb_size (int): Embedding size used throughout the transformer.
-        """        
+    def __init__(self, depth, emb_size):      
         super().__init__(*[TS_TransformerEncoderBlock(emb_size) for _ in range(depth)])
 
 
