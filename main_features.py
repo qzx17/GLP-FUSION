@@ -52,11 +52,6 @@ now = datetime.datetime.now()
 time_str = now.strftime("%y%m%d%H%M")
 time_str = time_str + args.exper_name
 
-
-# print('************************')
-# for k, v in vars(args).items():
-#     print(k,'=',v)
-# print('************************')
 if args.dataset == "DAiSEE":
     number_class = 4
     class_names = class_names_4
@@ -109,15 +104,11 @@ def main(set):
                              momentum=args.momentum,
                              weight_decay=args.weight_decay)
     
-    
-    # define scheduler
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,
                                                      milestones=args.milestones,
                                                      gamma=0.1)
-        
     cudnn.benchmark = True
 
-    # Data loading code
     train_data = train_data_loader(list_file=train_annotation_file_path,
                                    sl_file=sl_file_path,
                                    num_segments=16,
@@ -205,6 +196,7 @@ def main(set):
         with open(log_txt_path, 'a') as f:
             f.write('The best accuracy: ' + str(best_acc.item()) + '\n')
             f.write('An epoch time: ' + str(epoch_time) + 's' + '\n')
+    
     # evaluate on validation set
     test_acc, test_loss = validate(test_loader, model, criterion, args, log_txt_path)
     with open(log_txt_path, 'a') as f:
@@ -233,15 +225,13 @@ def train(train_loader, model, criterion, optimizer, epoch, args, log_txt_path):
         target = target.cuda()
         extract_features = extract_features.cuda()
         extract_features_sl=extract_features_sl.cuda()
+        
         # compute output
         output = model(images,extract_features,extract_features_sl)   #[B,4]          
         loss = criterion(output, target)
-        # measure accuracy and record loss
         acc1, _ = accuracy(output, target, topk=(1, 1))
         losses.update(loss.item(), images.size(0))
         top1.update(acc1[0], images.size(0))
-
-        # compute gradient and do SGD step
         optimizer.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
@@ -269,13 +259,11 @@ def validate(val_loader, model, criterion, args, log_txt_path):
             
             images = images.cuda() 
             target = target.cuda()
-
             extract_features = extract_features.cuda()
             extract_features_sl=extract_features_sl.cuda()
+            
             output = model(images, extract_features,extract_features_sl)  # [B,4]
             loss = criterion(output, target)
-
-            # measure accuracy and record loss
             acc1, _ = accuracy(output, target, topk=(1, 1))
             losses.update(loss.item(), images.size(0))
             top1.update(acc1[0], images.size(0))
@@ -287,7 +275,7 @@ def validate(val_loader, model, criterion, args, log_txt_path):
             f.write('Current Accuracy: {top1.avg:.3f}'.format(top1=top1) + '\n')
     return top1.avg, losses.avg
 
-def test(val_loader, model, criterion, args, log_txt_path):
+def test(test_loader, model, criterion, args, log_txt_path):
     losses = AverageMeter('Loss', ':.4f')
     top1 = AverageMeter('Accuracy', ':6.3f')
     progress = ProgressMeter(len(val_loader),
@@ -302,16 +290,12 @@ def test(val_loader, model, criterion, args, log_txt_path):
         for i, (images, target, extract_features,extract_features_sl) in enumerate(val_loader):
             
             images = images.cuda()
-            target = target.cuda()
-            
+            target = target.cuda()            
             extract_features = extract_features.cuda()
             extract_features_sl=extract_features_sl.cuda()
             
-            flows = list()
-            flows = torch.tensor(flows)
-            output = model(images,extract_features,extract_features_sl,flows)   #[B,4]
+            output = model(images,extract_features,extract_features_sl)   #[B,4]
             loss = criterion(output, target)
-
             # measure accuracy and record loss
             acc1, _ = accuracy(output, target, topk=(1, 1))
             losses.update(loss.item(), images.size(0))
@@ -331,7 +315,7 @@ def save_checkpoint(state, is_best, checkpoint_path, best_checkpoint_path):
         shutil.copyfile(checkpoint_path, best_checkpoint_path)
 
 class AverageMeter(object):
-    """Computes and stores the average and current value"""
+
     def __init__(self, name, fmt=':f'):
         self.name = name
         self.fmt = fmt
@@ -376,7 +360,7 @@ class ProgressMeter(object):
 
 
 def accuracy(output, target, topk=(1,)):
-    """Computes the accuracy over the k top predictions for the specified values of k"""
+
     with torch.no_grad():
         maxk = max(topk)
         batch_size = target.size(0)
@@ -391,7 +375,7 @@ def accuracy(output, target, topk=(1,)):
 
 
 class RecorderMeter(object):
-    """Computes and stores the minimum loss value and its epoch index"""
+    
     def __init__(self, total_epoch):
         self.reset(total_epoch)
 
@@ -486,14 +470,10 @@ def computer_uar_war(val_loader, model, best_checkpoint_path, log_confusion_matr
             
             images = images.cuda()
             target = target.cuda()
-
             extract_features = extract_features.cuda()
             extract_features_sl=extract_features_sl.cuda()
-            
-            # output = model(images, extract_features,extract_features_sl)  # [B,4]
-            flows = list()
-            flows = torch.tensor(flows)
-            output = model(images,extract_features,extract_features_sl,flows)   #[B,4]
+
+            output = model(images,extract_features,extract_features_sl)   #[B,4]
             # output = model(images)  # [B,4]
             predicted = output.argmax(dim=1, keepdim=True)
             correct += predicted.eq(target.view_as(predicted)).sum().item()
