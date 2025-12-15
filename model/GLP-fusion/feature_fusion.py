@@ -117,7 +117,7 @@ class PyramidFusionModule(nn.Module):
         
         temporal_features = multi_scale_features[:, 0, :]  # [b, 112]
         
-        # 9. 最终分类
+        # 5. 最终分类
         output = self.cross_scale_fusion(temporal_features)  # [b, 4]
         
         return output
