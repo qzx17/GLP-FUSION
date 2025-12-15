@@ -326,4 +326,5 @@ class VideoLevelInceptionNet(nn.Module):
         
         # 3. 分类
         output = self.fc(video_features)
+
         return output
