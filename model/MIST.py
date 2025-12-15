@@ -13,15 +13,16 @@ class Config:
     TEXT_SEQ_LEN = 16  # 文本序列长度（输入第2维）
     TEXT_HIDDEN_DIM = 768  # 文本特征维度（输入第3维）
     FRAME_NUM_PER_SAMPLE = 16  # 每个样本的帧数（frames第2维）
-    FRAME_SIZE = (224, 224)  # 帧分辨率（frames第4-5维）
+    FRAME_SIZE = (224, 224)  # 帧分辨率
     # 模态参数（参考原文档，剔除音频）
     NUM_EMOTIONS = 4 
     MODALITIES = ["text", "face", "motion"]  # 无音频
     TEXT_LR = 1e-5  # 原文档文本DeBERTa学习率
     FACE_LR = 1e-3  # 原文档ResNet-50学习率
     MOTION_LR = 1e-4  # 原文档3D-CNN学习率
-    EPOCHS = 10  # 统一训练轮次（可按需调整）
+    EPOCHS = 50
     MOD_ACCURACIES = torch.tensor([0.8443, 0.7048, 0.6872], dtype=torch.float32)  # 论文中 文本/面部/运动
+    MOD_ACCURACIES = torch.tensor([0.2, 0.5, 0.5], dtype=torch.float32)  # 调优后 文本/面部/运动
     # 设备
     DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -31,7 +32,7 @@ config = Config()
 
 # -------------------------- 二、数据集类（适配你的输入格式） --------------------------
 class NoAudioMISTDataset(Dataset):
-    """接收已预处理的text特征和frames特征，无需再提取原始数据（适配你的输入）"""
+    """接收已预处理的text特征和frames特征，无需再提取原始数据"""
     def __init__(self, text_features, frame_features, labels):
         """
         Args:
@@ -71,12 +72,11 @@ class NoAudioMISTDataset(Dataset):
 class TextModel(nn.Module):
     def __init__(self, num_classes=config.NUM_EMOTIONS):
         super().__init__()
-        # 原文档4.4：DeBERTa输出特征后接分类头，此处直接用输入的(16,768)特征
+        # 原论文4.4：DeBERTa输出特征后接分类头，此处直接用输入的(16,768)特征
         self.fc_layers = nn.Sequential(
             # 先对序列维度平均池化：(16,768)→(768)（整合16个token的特征）
             nn.AdaptiveAvgPool1d(1),
             nn.Flatten(),  # (768)
-            # 原文档“随机初始化全连接层”逻辑
             nn.Linear(config.TEXT_HIDDEN_DIM, 256),
             nn.ReLU(),
             nn.Dropout(0.1),  # 补充：防止过拟合（原文档未明确，通用实践）
@@ -91,7 +91,7 @@ class TextModel(nn.Module):
         return x
 
 
-# 2. 面部模态：ResNet-50（原文档4.6，完全一致）
+# 2. 面部模态：ResNet-50（原论文4.6，完全一致）
 class FaceModel(nn.Module):
     def __init__(self, num_classes=config.NUM_EMOTIONS):
         super().__init__()
@@ -105,7 +105,7 @@ class FaceModel(nn.Module):
         return self.resnet50(face_feat.to(config.DEVICE))  # (batch_size, num_classes)
 
 
-# 3. 运动模态：3D-CNN（原文档4.7，适配16帧输入）
+# 3. 运动模态：3D-CNN（原论文4.7，适配16帧输入）
 class MotionModel(nn.Module):
     def __init__(self, num_classes=config.NUM_EMOTIONS):
         super().__init__()
@@ -121,7 +121,6 @@ class MotionModel(nn.Module):
             ),
             nn.ReLU(),
             nn.MaxPool3d(kernel_size=(2, 2, 2)),  # 下采样：16->8帧
-            # 卷积层2：加深特征
             nn.Conv3d(
                 in_channels=32, 
                 out_channels=64, 
@@ -131,7 +130,6 @@ class MotionModel(nn.Module):
             ),
             nn.ReLU(),
             nn.MaxPool3d(kernel_size=(2, 2, 2)),  # 下采样：8->4帧
-            # 卷积层3：进一步提取特征
             nn.Conv3d(
                 in_channels=64, 
                 out_channels=128, 
@@ -159,16 +157,14 @@ class MotionModel(nn.Module):
         return x
 
 
-# -------------------------- 四、模态融合（原文档加权平均，剔除音频） --------------------------
+# -------------------------- 四、模态融合（原文档加权平均，这里剔除了音频） --------------------------
 class NoAudioMISTFusion(nn.Module):
     def __init__(self, text_model, face_model, motion_model):
         super().__init__()
         self.text_model = text_model
         self.face_model = face_model
         self.motion_model = motion_model
-        # 原文档Eq.1参数：mod_j（模态准确率）、rec_ij（模态-情感召回率）
-        self.mod_j = config.MOD_ACCURACIES.to(config.DEVICE)  # (3,)：文本/面部/运动
-        # rec_ij：(num_emotions, num_modalities)，需从验证集计算（示例初始化为1）
+        self.mod_j = config.MOD_ACCURACIES.to(config.DEVICE)  
         self.rec_ij = torch.ones(config.NUM_EMOTIONS, len(config.MODALITIES), device=config.DEVICE)
 
     def forward(self, batch):
@@ -213,3 +209,4 @@ class NoAudioMISTFusion(nn.Module):
         final_probs = numerator / denominator  # (batch_size, num_emotions)：每个样本的情感概率
 
         return final_probs
+
