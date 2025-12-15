@@ -41,8 +41,8 @@ torch.cuda.manual_seed(42)
 torch.cuda.manual_seed_all(42)
 
 
-# 视频处理参数（完全复用你Flask代码中的配置，避免不一致）
-FRAME_SAMPLING_RATE = 16  # 每隔16帧采集1帧（与你Flask代码一致）
+# 视频处理参数
+FRAME_SAMPLING_RATE = 16  # 每隔16帧采集1帧
 MAX_FRAMES = 256           # 最多处理16帧（防止显存爆炸，与Flask一致）
 IMAGE_SIZE = 224          # 帧尺寸（适配模型输入）
 BATCH_SIZE = 16           # 批次大小
@@ -57,11 +57,11 @@ EMBEDDING_SIZE = 768
 
 # 模型生成参数（含temperature=0.0，确保确定性输出）
 GENERATION_CONFIG = {
-    "temperature": 0.0,          # 你要求的确定性输出
-    "max_new_tokens": 1024,      # 足够长的输出容纳JSON
-    "do_sample": False,          # temperature=0.0必须关闭采样
-    "pad_token_id": None,        # 后续由processor自动配置
-    "eos_token_id": None,         # 后续由processor自动配置
+    "temperature": 0.0,          
+    "max_new_tokens": 1024,      
+    "do_sample": False,         
+    "pad_token_id": None,       
+    "eos_token_id": None,
     "max_frames": 16
 }
 
@@ -82,12 +82,6 @@ Please return your response without any Explanation in JSON format:
 
 # -------------------------- API 调用函数 (新增) --------------------------
 def call_server_api(video_path, prompt):
-    """
-    调用外部 Flask 服务器的 /v1/chat/completions 接口进行推理。
-    
-    注意：API Server (即您提供的 Flask 腳本) 必须在运行中，
-          且需要能够访问 video_path 指向的本地文件。
-    """
     # 构造请求 payload (遵循 OpenAI 格式，但使用 video_path 字段)
     payload = {
         "messages": [
@@ -143,11 +137,6 @@ def call_server_api(video_path, prompt):
         }, ""
 
 def call_server_api_text(prompt):
-    """
-    调用外部 Flask 服务器的 /v1/chat/completions 接口进行文本推理（无视频）。
-    
-    注意：API Server (即您提供的 Flask 腳本) 必须在运行中。
-    """
     # 构造请求 payload（仅保留文本类型的 content）
     payload = {
         "messages": [
@@ -158,13 +147,11 @@ def call_server_api_text(prompt):
                 ]
             }
         ],
-        # 保留原生成参数（按需调整）
         "temperature": GENERATION_CONFIG["temperature"],
         "max_tokens": GENERATION_CONFIG["max_new_tokens"],
         "do_sample": GENERATION_CONFIG['do_sample'],
     }
     
-    # 日志简化（只打印 prompt 相关，截取前50字符避免过长）
     prompt_log = prompt[:50] + "..." if len(prompt) > 50 else prompt
     print(f"Calling API: {API_URL} with prompt: {prompt_log}")
     
@@ -175,7 +162,7 @@ def call_server_api_text(prompt):
         
         api_response = response.json()
         
-        # 解析响应（逻辑不变）
+        # 解析响应
         output_text = api_response['choices'][0]['message']['content'].strip()
         
         try:
@@ -198,7 +185,6 @@ def call_server_api_text(prompt):
             "analysis": f"API call failed: {str(e)}"
         }
 
-# -------------------------- 主函数（批量处理视频，核心逻辑对齐Flask） --------------------------
 def main():
 
     class Args:
@@ -227,8 +213,8 @@ def main():
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
         batch_size=BATCH_SIZE,
-        shuffle=False,  # 测试阶段禁用shuffle，便于定位问题
-        num_workers=8,   # 与你Flask代码一致，避免多线程视频读取冲突
+        shuffle=True,  
+        num_workers=8, 
         pin_memory=True,
         drop_last=True
     )
@@ -316,7 +302,7 @@ def inference(train_loader, log_txt_path):
                     
 
                 except Exception as e:
-                    print(f"\n處理 {video_path} 時發生嚴重錯誤: {e}")
+                    print(f"\n处理 {video_path} 时发生错误: {e}")
                     traceback.print_exc()
                     result_entry["Engagement_Level"] = None
 
@@ -399,4 +385,5 @@ if __name__ == "__main__":
         main()
     except Exception as e:
         print(f"Program terminated with error: {str(e)}")
+
         raise
