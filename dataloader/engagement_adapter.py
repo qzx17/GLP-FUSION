@@ -142,11 +142,11 @@ class CLIPTextEmbeddingCache:
             
             self.embeddings = torch.cat(embeddings_list, dim=0)  # [num_classes, 768]
             
-            print(f"✅ 生成 {self.num_classes} 个参与度级别的CLIP文本嵌入")
+            print(f"生成 {self.num_classes} 个参与度级别的CLIP文本嵌入")
             return self.embeddings
             
         except Exception as e:
-            print(f"❌ CLIP文本嵌入生成失败：{str(e)}")
+            print(f"CLIP文本嵌入生成失败：{str(e)}")
             # 返回随机嵌入作为fallback
             self.embeddings = torch.randn(self.num_classes, 768).to(device)
             return self.embeddings
@@ -185,3 +185,4 @@ def create_engagement_dataloader(dataset, batch_size=16, shuffle=True, num_worke
     )
     
     return dataloader
+
