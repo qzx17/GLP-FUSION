@@ -59,9 +59,9 @@ class VideoDataset(data.Dataset):
             print(f"加载预提取视觉特征: {pre_extracted_features_path}")
             with open(pre_extracted_features_path, 'rb') as f:
                 self.pre_extracted_features = pickle.load(f)
-            print(f"✅ 预提取特征加载成功，共 {len(self.pre_extracted_features)} 个样本")
+            print(f"预提取特征加载成功，共 {len(self.pre_extracted_features)} 个样本")
         elif pre_extracted_features_path:
-            print(f"⚠️  预提取特征文件不存在: {pre_extracted_features_path}")
+            print(f"预提取特征文件不存在: {pre_extracted_features_path}")
         
         self._parse_list()
         pass
@@ -87,11 +87,11 @@ class VideoDataset(data.Dataset):
 
     def _load_embedding_dict(self, dict_path):
         if not os.path.exists(dict_path):
-            raise FileNotFoundError(f"❌ 文本嵌入字典不存在！请先运行生成，路径：{dict_path}")
+            raise FileNotFoundError(f"文本嵌入字典不存在！请先运行生成，路径：{dict_path}")
         try:
             with open(dict_path, 'rb') as f:
                 embedding_dict = pickle.load(f)
-            print(f"✅ 从 {dict_path} 加载文本嵌入字典（共 {len(embedding_dict)} 个嵌入）")
+            print(f"从 {dict_path} 加载文本嵌入字典（共 {len(embedding_dict)} 个嵌入）")
             return embedding_dict
         except Exception as e:
             raise ValueError(f"❌ 加载嵌入字典失败：{str(e)}")
@@ -161,7 +161,7 @@ class VideoDataset(data.Dataset):
                 # 添加 batch 维度: (num_segments, 2048) -> (1, num_segments, 2048)
                 visual_features_batch = sampled_features.unsqueeze(0)
             else:
-                print(f"⚠️  未找到预提取特征: {record.path}")
+                print(f"未找到预提取特征: {record.path}")
                 # 回退到原始图像处理
                 return self._get_from_images(record, indices)
             
@@ -317,3 +317,4 @@ def test_data_loader(list_file, sl_file, text_embedding_dict, num_segments, dura
                              image_size=image_size,
                              pre_extracted_features_path=pre_extracted_features_path)  # 新增参数
     return test_data
+
