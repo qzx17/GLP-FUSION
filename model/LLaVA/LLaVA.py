@@ -37,15 +37,10 @@ model = VideoLlavaForConditionalGeneration.from_pretrained(model_path, torch_dty
 processor = VideoLlavaProcessor.from_pretrained(model_path)
 
 # 构造 Prompt
-# prompt = "USER: <video> You need to identify the user's engagement level in this video. The engagement levels range from low to high as four discrete values: [0, 1, 2, 3], representing the user's engagement from completely disengaged to highly engaged. Your answer must be one of these four values, and you should not produce any other irrelevant output. For example, input: <a video description>, output:2. ASSISTANT:"
-
 prompt = "USER: <video> You need to identify the user's engagement level in this video. The engagement levels range from low to high as four discrete values: [0, 1, 2, 3], representing the user's engagement from completely disengaged to highly engaged. Your answer must be one of these four values, and you should not produce any other irrelevant output. ASSISTANT:"
-
 
 max_attempts = 5
 valid_responses = {"0", "1", "2", "3"}
-
-
 
 
 for video_folder, label in tqdm(dataset):
@@ -75,4 +70,5 @@ for video_folder, label in tqdm(dataset):
     data['gt'] = label
     data['pred'] = pred
     with open(save_file, 'a') as f:
+
         f.write(json.dumps(data) + '\n')
