@@ -90,11 +90,9 @@ def inference(test_loader, model):
         all_predictions, 
         average='weighted'
     )
-    
-    # (Correlation Coefficient)
+
     correlation = np.corrcoef(all_targets, all_predictions)[0, 1]
-    
-    # (Mean Absolute Error)
+
     mae = np.mean(np.abs(all_targets - all_predictions))
     
     cm = confusion_matrix(all_targets, all_predictions)
@@ -147,7 +145,7 @@ def main():
 
 
 class RecorderMeter(object):
-    """Computes and stores the minimum loss value and its epoch index"""
+    
     def __init__(self, total_epoch):
         self.reset(total_epoch)
 
