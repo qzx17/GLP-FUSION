@@ -60,7 +60,7 @@ class VideoDataset(data.Dataset):
 
         for item in tmp:
             video_path = item[0]
-            num_frames = 256  # 使用固定帧数
+            num_frames = 280  # 使用固定帧数
             class_idx = item[2]
             csv_file_path = item[3]  # 添加CSV文件路径
             sl_csv_file_path = self.sl_file
