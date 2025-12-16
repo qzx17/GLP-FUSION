@@ -29,7 +29,6 @@ class EnhancedFusion(nn.Module):
         weighted_features = combined * weights  # 加权融合
         final_class = self.linear(weighted_features)
         return final_class
-        return weighted_features
 
 class PyramidFusionModule(nn.Module):
     def __init__(self, input_dim=64, depths=[6,4,2], heads=[8,4,2], dim_head=64):
