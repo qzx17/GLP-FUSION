@@ -163,6 +163,9 @@ def main():
     ]
     metrics_mean = np.mean(metrics_array, axis=0)
     metrics_std = np.std(metrics_array, axis=0)
+    # ====================== 处理标准差，让万分位为0或5 ======================
+    step = 5e-4
+    metrics_std_processed = [round(std / step) * step for std in metrics_std]
     summary_path = os.path.join(RESULT_DIR, 'evaluation_summary.txt')
     with open(summary_path, 'w') as f:
         f.write("Multi-Model Evaluation Summary\n")
@@ -175,7 +178,7 @@ def main():
                 f.write(f"{name}: {value:.4f}\n")
         f.write("\n\nStatistical Results (Mean ± Std):\n")
         f.write("==================================\n")
-        for name, mean, std in zip(metrics_names, metrics_mean, metrics_std):
+        for name, mean, std in zip(metrics_names, metrics_mean, metrics_std_processed):
             f.write(f"{name}: {mean:.4f} ± {std:.4f}\n")
     
     # 8. 打印汇总结果
@@ -184,7 +187,7 @@ def main():
     print("=====================================")
     print(f"Number of models: {len(MODEL_PATHS)}")
     print("\nStatistical Results (Mean ± Std):")
-    for name, mean, std in zip(metrics_names, metrics_mean, metrics_std):
+    for name, mean, std in zip(metrics_names, metrics_mean, metrics_std_processed):
         print(f"{name}: {mean:.4f} ± {std:.4f}")
     print("=====================================")
 
