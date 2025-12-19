@@ -84,7 +84,7 @@ Classification Output
 
 1. **Clone the Repository**
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/qzx17/GLP-FUSION.git
 cd GLP-fusion
 ```
 
@@ -109,12 +109,6 @@ pip install -r requirements.txt
 ```bash
 # CUDA 11.8
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-
-# CUDA 12.1
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-
-# CPU version
-pip install torch torchvision torchaudio
 ```
 
 ## Data Preparation
@@ -320,6 +314,7 @@ For questions or suggestions, please contact:
 ---
 
 **Happy Coding!** 🎓📚
+
 
 
 
