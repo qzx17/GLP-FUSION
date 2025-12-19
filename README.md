@@ -220,8 +220,7 @@ Edit the `inference.py` file to set test data paths and model path:
 test_annotation_file_path = "/EngageNet_Test_set.txt"
 sl_file_path = "SL_EngageNet.csv"
 
-# Load model
-model = load_model('/pth/EngageNet/EngageNet-xxx-set1-model_best.pth')
+# Load the best models obtained after 3-5 training runs to get the mean accuracy and std.
 ```
 
 
@@ -237,34 +236,6 @@ python inference.py
 ├── confusion_matrix.png           # Confusion matrix visualization
 └── evaluation_results.txt         # Detailed evaluation metrics
 ```
-
-**Evaluation metrics include:**
-- Weighted Accuracy
-- Weighted Precision
-- Weighted Recall
-- Weighted F1 Score
-- Correlation Coefficient
-- Mean Absolute Error
-- Per-class metrics
-
-### Evaluation Metrics
-
-- **UAR** (Unweighted Average Recall): Unweighted average recall
-- **WAR** (Weighted Average Recall): Weighted average recall
-- **Accuracy**: Accuracy
-- **Precision**: Precision
-- **Recall**: Recall
-- **F1-Score**: F1 score
-- **Confusion Matrix**: Confusion matrix
-
-## Parameter Description
-
-### Data Augmentation Parameters
-
-- `GroupRandomSizedCrop`: Random crop to 0.08-1.0 of original size
-- `GroupRandomHorizontalFlip`: 50% probability horizontal flip
-- `GroupNormalize`: Dataset-specific normalization
-
 ## Important Notes
 
 1. **Data Paths**: Modify data paths in `main_features.py` and `inference.py` according to your setup
@@ -314,6 +285,7 @@ For questions or suggestions, please contact:
 ---
 
 **Happy Coding!** 🎓📚
+
 
 
 
