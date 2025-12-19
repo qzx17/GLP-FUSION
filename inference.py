@@ -153,7 +153,7 @@ def main():
     
     for idx, model_path in enumerate(MODEL_PATHS):
         model = load_model(model_path)
-        metrics = inference(test_loader, model, idx)
+        metrics = inference(test_loader, model)
         metrics_list.append(metrics)
     
     metrics_array = np.array(metrics_list)  # shape: (num_models, 6)
