@@ -9,6 +9,14 @@ import numpy as np
 # test_annotation_file_path = "/DAiSEE_Test_set.txt"
 # sl_file_path = "SL_DAiSEE.csv"
 
+#防止出现在val上高，在test低的极端现象，采用平均的方法，验证多次
+MODEL_PATHS = [
+    "/pth/EmotiW/model1.pth",
+    "/pth/EmotiW/model2.pth",
+    "/pth/EmotiW/model3.pth",
+]
+RESULT_DIR = "result"
+CLASSES = ['Not-Engaged', 'Barely-Engaged', 'Engaged', 'Highly-Engaged']
 test_annotation_file_path = "/EmotiW_Test_set.txt"
 sl_file_path = "SL_EmotiW.csv"
 def load_model(checkpoint_path):
@@ -128,6 +136,7 @@ def inference(test_loader, model):
     return accuracy, precision, recall, f1, correlation, mae
 
 def main():
+    os.makedirs(RESULT_DIR, exist_ok=True)
     test_loader = test_data_loader(list_file=test_annotation_file_path,
                                   sl_file=sl_file_path,
                                   num_segments=16,
@@ -138,10 +147,45 @@ def main():
                                              shuffle=False,
                                              num_workers=8,
                                              pin_memory=True)
+
+    metrics_list = []
     
-    model = load_model('/pth/EmotiW/***.pth')
+    for idx, model_path in enumerate(MODEL_PATHS):
+        model = load_model(model_path)
+        metrics = inference(test_loader, model, idx)
+        metrics_list.append(metrics)
     
-    accuracy, precision, recall, f1, correlation, mae = inference(test_loader, model)
+    metrics_array = np.array(metrics_list)  # shape: (num_models, 6)
+    metrics_names = [
+        "Accuracy", "Precision", "Recall", 
+        "F1 Score", "Correlation", "MAE"
+    ]
+    metrics_mean = np.mean(metrics_array, axis=0)
+    metrics_std = np.std(metrics_array, axis=0)
+    summary_path = os.path.join(RESULT_DIR, 'evaluation_summary.txt')
+    with open(summary_path, 'w') as f:
+        f.write("Multi-Model Evaluation Summary\n")
+        f.write("===============================\n")
+        f.write(f"Number of models: {len(MODEL_PATHS)}\n\n")
+        f.write("Individual Model Results:\n")
+        for idx, metrics in enumerate(metrics_list):
+            f.write(f"\nModel {idx}:\n")
+            for name, value in zip(metrics_names, metrics):
+                f.write(f"{name}: {value:.4f}\n")
+        f.write("\n\nStatistical Results (Mean ± Std):\n")
+        f.write("==================================\n")
+        for name, mean, std in zip(metrics_names, metrics_mean, metrics_std):
+            f.write(f"{name}: {mean:.4f} ± {std:.4f}\n")
+    
+    # 8. 打印汇总结果
+    print("\n\n=====================================")
+    print("Multi-Model Evaluation Summary")
+    print("=====================================")
+    print(f"Number of models: {len(MODEL_PATHS)}")
+    print("\nStatistical Results (Mean ± Std):")
+    for name, mean, std in zip(metrics_names, metrics_mean, metrics_std):
+        print(f"{name}: {mean:.4f} ± {std:.4f}")
+    print("=====================================")
 
 
 class RecorderMeter(object):
