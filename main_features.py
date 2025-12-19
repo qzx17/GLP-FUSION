@@ -227,7 +227,7 @@ def train(train_loader, model, criterion, optimizer, epoch, args, log_txt_path):
         extract_features_sl=extract_features_sl.cuda()
         
         # compute output
-        output = model(images,extract_features,extract_features_sl)   #[B,4]          
+        output, _ = model(images,extract_features,extract_features_sl)   #[B,4]          
         loss = criterion(output, target)
         acc1, _ = accuracy(output, target, topk=(1, 1))
         losses.update(loss.item(), images.size(0))
@@ -262,7 +262,7 @@ def validate(val_loader, model, criterion, args, log_txt_path):
             extract_features = extract_features.cuda()
             extract_features_sl=extract_features_sl.cuda()
             
-            output = model(images, extract_features,extract_features_sl)  # [B,4]
+            output, _ = model(images, extract_features,extract_features_sl)  # [B,4]
             loss = criterion(output, target)
             acc1, _ = accuracy(output, target, topk=(1, 1))
             losses.update(loss.item(), images.size(0))
@@ -294,7 +294,7 @@ def test(test_loader, model, criterion, args, log_txt_path):
             extract_features = extract_features.cuda()
             extract_features_sl=extract_features_sl.cuda()
             
-            output = model(images,extract_features,extract_features_sl)   #[B,4]
+            output, _ = model(images,extract_features,extract_features_sl)   #[B,4]
             loss = criterion(output, target)
             # measure accuracy and record loss
             acc1, _ = accuracy(output, target, topk=(1, 1))
