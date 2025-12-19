@@ -1,6 +1,5 @@
 import torch
 from torch import nn
-
 from einops import rearrange, repeat
 from einops.layers.torch import Rearrange
 import torch.nn.functional as F
@@ -102,7 +101,7 @@ class Attention(nn.Module):
 
         out = torch.matmul(attn, v)
         out = rearrange(out, 'b h n d -> b n (h d)')
-        return self.to_out(out)
+        return self.to_out(out), attn
 
 class Transformer(nn.Module):
     def __init__(self, dim, depth, heads, dim_head, mlp_dim, dropout=0.2):
@@ -118,10 +117,13 @@ class Transformer(nn.Module):
         self.final_norm = nn.LayerNorm(dim)  # 最终的层归一化
 
     def forward(self, x):
+        attn_all = []
         for norm1, attn, norm2, ff in self.layers:
-            x = x + attn(norm1(x))
+            attn_output, attn_map = attn(norm1(x))
+            x = x + attn_output  # Pre-norm + 残差连接
+            attn_all.append(attn_map)
             x = x + ff(norm2(x))
-        return self.final_norm(x)
+        return self.final_norm(x), attn_all[-1]
     
 class TemporalViT(nn.Module):
     def __init__(self, *, image_size, patch_size, dim, depth, heads, mlp_dim, pool='cls', channels=64, dim_head=64, dropout=0.3, emb_dropout=0.2):
@@ -139,6 +141,7 @@ class TemporalViT(nn.Module):
             nn.ReLU()
         )
 
+        # 残差块
         self.residual_block = ResidualBlock(32, 64, kernel_size=3, stride=1, padding=1)
         
         self.to_patch_embedding = nn.Sequential(
@@ -163,30 +166,41 @@ class TemporalViT(nn.Module):
             nn.Dropout(0.3)
         )
 
-    def forward(self, x):
+    def forward(self, x, return_visuals=False):
         b, t, n, h, w = x.shape
-        x = x.reshape(b * t, n, h, w)  # Reshape to (batch_size * sequence_length, num_patches, dim)
-       
-        x = self.init_conv(x)
+        x_reshaped = x.reshape(b * t, n, h, w)
 
-        x = self.residual_block(x)
-        _, n, h, w = x.shape
-        x = x.reshape(b,-1,n,h,w)
-        x = self.to_patch_embedding(x)  # img shape: (batch_size, sequence_length, channels, height, width)
+        # 1. 提取CNN特征图
+        cnn_features = self.init_conv(x_reshaped)
+        cnn_features = self.residual_block(cnn_features) # 形状 [b*t, 64, H, W]
+
+        _, n, h, w = cnn_features.shape
+        x_patched = cnn_features.reshape(b, -1, n, h, w) # 重新组合 batch 和 time 维度
+        x_embedded = self.to_patch_embedding(x_patched)
         
-        b, t, n, _ = x.shape
-        x = x.reshape(b * t, n, -1)  # Reshape to (batch_size * sequence_length, num_patches, dim)
+        b, t, n_patches, _ = x_embedded.shape
+        
+        x_flat = x_embedded.reshape(b * t, n_patches, -1)
 
-        cls_tokens = repeat(self.cls_token, '1 1 n d -> b t n d', b=b, t=t)
-        cls_tokens = cls_tokens.reshape(b * t, 1, -1)  # Reshape to (batch_size * sequence_length, 1, dim)
-        x = torch.cat((cls_tokens, x), dim=1)
-        x += self.pos_embedding[:, :(n + 1), :]  # Add positional encoding
-        # x = x.reshape(b,t,n+1,-1)
-        x = self.dropout(x)
-        x = self.transformer(x)
-        x = x.reshape(b, t, (n+1), -1)  # Reshape back to (batch_size, sequence_length, dim)
-        x = x[:, :, 0, :]
-        x = x.view(b,t,-1)
-        x = self.temporal_projection(x)
+        cls_tokens = repeat(self.cls_token, '1 1 1 d -> bt 1 d', bt = b * t)
+        x_with_cls = torch.cat((cls_tokens, x_flat), dim=1)
+        x_with_cls += self.pos_embedding[:, :(n_patches + 1), :]
+        x_with_cls = self.dropout(x_with_cls)
 
-        return x
+        # 2. 接收 Transformer 的输出和注意力图
+        x_transformed, attn_map = self.transformer(x_with_cls)
+
+        x_reshaped_back = x_transformed.reshape(b, t, (n_patches + 1), -1)
+        cls_output = x_reshaped_back[:, :, 0, :]
+        final_features = self.temporal_projection(cls_output) # 形状 [b, t, 64]
+        
+        if return_visuals:
+            visuals = {
+                'vit_attention': attn_map,      # ViT 注意力图
+                'cnn_features': cnn_features,   # CNN 特征图 (for Grad-CAM)
+                'final_features': final_features, # 模型最终输出的视觉特征
+            }
+            # 注意：这里的 final_features 是修改前 Decision_Fusion 中 visual_features 的来源
+            return final_features, visuals
+        else:
+            return final_features
