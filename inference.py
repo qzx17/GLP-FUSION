@@ -17,7 +17,6 @@ MODEL_PATHS = [
     "/pth/EmotiW/model3.pth",
 ]
 RESULT_DIR = "result"
-CLASSES = ['Not-Engaged', 'Barely-Engaged', 'Engaged', 'Highly-Engaged']
 test_annotation_file_path = "/EmotiW_Test_set.txt"
 sl_file_path = "SL_EmotiW.csv"
 def load_model(checkpoint_path):
