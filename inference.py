@@ -10,11 +10,12 @@ rmpy as np
 # test_annotation_file_path = "/DAiSEE_Test_set.txt"
 # sl_file_path = "SL_DAiSEE.csv"
 
-#防止出现在val上高，在test低的极端现象，采用平均的方法，验证多次
+#防止出现在val上高，在test低的极端现象，采用平均的方法(3-5次即可)，验证多次
 MODEL_PATHS = [
     "/pth/EmotiW/model1.pth",
     "/pth/EmotiW/model2.pth",
     "/pth/EmotiW/model3.pth",
+    "/pth/EmotiW/model4.pth"
 ]
 RESULT_DIR = "result"
 test_annotation_file_path = "/EmotiW_Test_set.txt"
