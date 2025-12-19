@@ -81,7 +81,7 @@ def inference(test_loader, model):
             extract_features = extract_features.cuda()
             extract_features_sl = extract_features_sl.cuda()
             
-            output = model(images, extract_features, extract_features_sl)
+            output, _ = model(images, extract_features, extract_features_sl)
             probabilities = torch.softmax(output, dim=1) 
             predictions = torch.argmax(output, dim=1)
             
