@@ -163,7 +163,7 @@ def main():
     ]
     metrics_mean = np.mean(metrics_array, axis=0)
     metrics_std = np.std(metrics_array, axis=0)
-    # ====================== 处理标准差，让万分位为0或5 ======================
+
     step = 5e-4
     metrics_std_processed = [round(std / step) * step for std in metrics_std]
     summary_path = os.path.join(RESULT_DIR, 'evaluation_summary.txt')
