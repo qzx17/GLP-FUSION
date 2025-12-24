@@ -157,44 +157,6 @@ GLP-fusion/
 **Physiological Signals CSV (SL file)**
 - Required columns: `all_ids`, `heart_rates`, `p2p_intervals`, `sys_peaks`, `dys_peaks`
 
-## Model Training
-
-### Basic Training Commands
-
-**Train on DAiSEE Dataset**
-```bash
-python main_features.py \
-  --dataset DAiSEE \
-  --workers 8 \
-  --epochs 50 \
-  --batch-size 6 \
-  --lr 0.005 \
-  --weight-decay 0.0001 \
-  --momentum 0.9 \
-  --print-freq 10 \
-  --milestones 40 \
-  --exper-name "DAiSEE_Experiment" \
-  --seed 42 \
-  --temporal-layers 1
-```
-
-**Train on EngageNet Dataset**
-```bash
-python main_features.py \
-  --dataset EngageNet \
-  --workers 8 \
-  --epochs 50 \
-  --batch-size 6 \
-  --lr 0.01 \
-  --weight-decay 0.0001 \
-  --momentum 0.9 \
-  --print-freq 10 \
-  --milestones 40 \
-  --exper-name "EngageNet_Experiment" \
-  --seed 42 \
-  --temporal-layers 1
-```
-
 ### Training Output
 
 The training process will automatically generate the following files:
@@ -285,6 +247,7 @@ For questions or suggestions, please contact:
 ---
 
 **Happy Coding!** 🎓📚
+
 
 
 
