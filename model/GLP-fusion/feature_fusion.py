@@ -49,6 +49,7 @@ class PyramidFusionModule(nn.Module):
             ) for i, (depth, head) in enumerate(zip(depths, heads))
         ])
         
+        # ===== 核心修正：down_projections仅保留Conv1d =====
         self.down_projections = nn.ModuleList([
             nn.Sequential(
                 nn.Conv1d(
@@ -62,10 +63,12 @@ class PyramidFusionModule(nn.Module):
             ) for _ in range(3)
         ])
         
+        # 单独定义归一化/激活/正则化（统一管理）
         self.layer_norm = nn.LayerNorm(self.fusion_dim)
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(0.3)
         
+        # 跨尺度融合
         self.cross_scale_fusion = nn.Sequential(
             nn.Linear(self.fusion_dim * 3, 64),
             nn.LayerNorm(64),
@@ -74,6 +77,7 @@ class PyramidFusionModule(nn.Module):
             nn.Linear(64, 4)
         )
               
+        # 时序位置编码/CLS Token
         self.temporal_pos_embedding = nn.Parameter(torch.randn(1, self.T_init, self.fusion_dim))
         self.temporal_cls_token = nn.Parameter(torch.randn(1, 1, self.fusion_dim))
 
@@ -84,7 +88,8 @@ class PyramidFusionModule(nn.Module):
 
         feat = torch.cat([x1, x2], dim=-1)  # [b,16,128]
         feat = feat + self.temporal_pos_embedding
-        
+
+        # ===== 第1层 =====
         feat_perm = feat.permute(0, 2, 1)  # [b,128,16]
         feat_down_8 = self.down_projections[0](feat_perm)  # [b,128,8]
         feat_down_8 = feat_down_8.permute(0, 2, 1)  # [b,8,128]
@@ -97,6 +102,7 @@ class PyramidFusionModule(nn.Module):
         pyramid_cls.append(feat_8_trans[:, 0:1, :])
         pyramid_visuals['scale_16to8_attention'] = attn_8
 
+        # ===== 第2层 =====
         feat_8_perm = feat_8.permute(0, 2, 1)  # [b,128,8]
         feat_down_4 = self.down_projections[1](feat_8_perm)  # [b,128,4]
         feat_down_4 = feat_down_4.permute(0, 2, 1)  # [b,4,128]
@@ -108,6 +114,7 @@ class PyramidFusionModule(nn.Module):
         pyramid_cls.append(feat_4_trans[:, 0:1, :])
         pyramid_visuals['scale_8to4_attention'] = attn_4
 
+        # ===== 第3层 =====
         feat_4_perm = feat_4.permute(0, 2, 1)  # [b,128,4]
         feat_down_2 = self.down_projections[2](feat_4_perm)  # [b,128,2]
         feat_down_2 = feat_down_2.permute(0, 2, 1)  # [b,2,128]
