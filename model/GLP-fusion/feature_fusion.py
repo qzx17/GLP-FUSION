@@ -29,56 +29,6 @@ class EnhancedFusion(nn.Module):
         final_class = self.linear(weighted_features)
         return final_class, weights
 
-class AdaptationGate(nn.Module):
-    def __init__(self, feature_dim=4, hidden_dim=64, num_classes=4, dropout_rate=0.2):
-        super().__init__()
-        
-        # 特征融合部分
-        self.gate_net = nn.Sequential(
-            nn.Linear(feature_dim * 2, hidden_dim),  # 连接两个特征
-            nn.LayerNorm(hidden_dim),
-            nn.ReLU(),
-            nn.Dropout(dropout_rate)
-        )
-        
-        # 特征变换
-        self.transform_v = nn.Linear(feature_dim, hidden_dim)
-        self.transform_s = nn.Linear(feature_dim, hidden_dim)
-        
-        # 分类头
-        self.classifier = nn.Sequential(
-            nn.LayerNorm(hidden_dim),
-            nn.Dropout(dropout_rate),
-            nn.Linear(hidden_dim, num_classes)
-        )
-        
-    def forward(self, V, S):
-        """
-        Args:
-            V: 视觉特征 (batch_size, feature_dim)
-            S: 生理特征 (batch_size, feature_dim)
-        Returns:
-            output: 分类结果 (batch_size, num_classes)
-        """
-        # 确保输入维度正确
-        assert V.dim() == 2 and S.dim() == 2, f"输入维度必须是2D，当前维度: V-{V.dim()}, S-{S.dim()}"
-        assert V.size(0) == S.size(0), f"批次大小不匹配: V-{V.size(0)}, S-{S.size(0)}"
-        
-        # 计算注意力权重
-        gate = self.gate_net(torch.cat([V, S], dim=1))
-        
-        # 特征变换
-        V_trans = self.transform_v(V)
-        S_trans = self.transform_s(S)
-        
-        # 特征融合
-        fused = gate * S_trans + V_trans
-        
-        # 分类
-        output = self.classifier(fused)
-        
-        return output
-
  
 class PyramidFusionModule(nn.Module):
     def __init__(self, input_dim=64, depths=[6,4,2], heads=[8,4,2], dim_head=64):
