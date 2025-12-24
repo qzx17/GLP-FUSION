@@ -100,7 +100,7 @@ class PyramidFusionModule(nn.Module):
         feat_8_with_cls = torch.cat([cls_token, feat_8], dim=1)
         feat_8_trans, attn_8 = self.transformers[0](feat_8_with_cls)
         pyramid_cls.append(feat_8_trans[:, 0:1, :])
-        pyramid_visuals['scale_16to8_attention'] = attn_8
+        pyramid_visuals['low_level_attention'] = attn_8
 
         # ===== 第2层 =====
         feat_8_perm = feat_8.permute(0, 2, 1)  # [b,128,8]
@@ -112,7 +112,7 @@ class PyramidFusionModule(nn.Module):
         feat_4_with_cls = torch.cat([cls_token, feat_4], dim=1)
         feat_4_trans, attn_4 = self.transformers[1](feat_4_with_cls)
         pyramid_cls.append(feat_4_trans[:, 0:1, :])
-        pyramid_visuals['scale_8to4_attention'] = attn_4
+        pyramid_visuals['mid_level_attention'] = attn_4
 
         # ===== 第3层 =====
         feat_4_perm = feat_4.permute(0, 2, 1)  # [b,128,4]
@@ -124,7 +124,7 @@ class PyramidFusionModule(nn.Module):
         feat_2_with_cls = torch.cat([cls_token, feat_2], dim=1)
         feat_2_trans, attn_2 = self.transformers[2](feat_2_with_cls)
         pyramid_cls.append(feat_2_trans[:, 0:1, :])
-        pyramid_visuals['scale_4to2_attention'] = attn_2
+        pyramid_visuals['high_level_attention'] = attn_2
 
         # 跨尺度融合
         fused_cls = torch.cat(pyramid_cls, dim=-1)  # [b,1,384]
