@@ -185,7 +185,7 @@ class Decision_Fusion(nn.Module):
     def __init__(self, n_classes):
         super(Decision_Fusion, self).__init__()
         self.ct_vit = TemporalViT(
-            image_size=(112, 112),  # 注意：image_size 应该是一个元组
+            image_size=(224, 224),  # 注意：image_size 应该是一个元组
             patch_size=16,
             dim=768,
             depth=6,
