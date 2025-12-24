@@ -49,7 +49,6 @@ class PyramidFusionModule(nn.Module):
             ) for i, (depth, head) in enumerate(zip(depths, heads))
         ])
         
-        # ===== 核心修正：down_projections仅保留Conv1d =====
         self.down_projections = nn.ModuleList([
             nn.Sequential(
                 nn.Conv1d(
@@ -63,7 +62,6 @@ class PyramidFusionModule(nn.Module):
             ) for _ in range(3)
         ])
         
-        # 单独定义归一化/激活/正则化（统一管理）
         self.layer_norm = nn.LayerNorm(self.fusion_dim)
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(0.3)
@@ -140,7 +138,7 @@ class Decision_Fusion(nn.Module):
     def __init__(self, n_classes):
         super(Decision_Fusion, self).__init__()
         self.ct_vit = TemporalViT(
-            image_size=(224, 224),  # 注意：image_size 应该是一个元组
+            image_size=(224, 224),
             patch_size=16,
             dim=768,
             depth=6,
