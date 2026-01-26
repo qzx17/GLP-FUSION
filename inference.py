@@ -6,7 +6,7 @@ from dataloader.video_compare import test_data_loader
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support, confusion_matrix
 import matplotlib.pyplot as plt
 import os
-rmpy as np
+import numpy as np
 # test_annotation_file_path = "/DAiSEE_Test_set.txt"
 # sl_file_path = "SL_DAiSEE.csv"
 
